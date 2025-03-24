@@ -23,14 +23,14 @@ impl BrewFormulaInstaller {
         Ok(info)
     }
 
-    pub fn new(formula_name: &str, description: &str) -> Result<Self, Box<dyn Error>> {
+    pub fn new(formula_name: &str, description: &str) -> Self {
         match Self::get_brew_package(formula_name.to_string()) {
-            Ok(info) => Ok(Self {
+            Ok(info) => Self {
                 formula_name: formula_name.to_string(),
                 description: description.to_string(),
                 _info: info,
-            }),
-            Err(error) => Err(error.into()),
+            },
+            Err(error) => panic!("{}", error),
         }
     }
 
@@ -85,7 +85,7 @@ impl Installer for BrewFormulaInstaller {
 
     fn install(&self) -> Result<(), Box<dyn Error>> {
         if self.is_installed()? {
-            println!("{} is {}", self.formula_name, "installed".green());
+            println!("{} is {}", self.formula_name, "installed".green().bold());
             return Ok(());
         }
 
