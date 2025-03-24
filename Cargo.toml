@@ -1,0 +1,11 @@
+[package]
+name = "my-mac"
+version = "0.1.0"
+authors = ["Clode <clode@clo5de.info>"]
+edition = "2024"
+license = "MIT"
+
+[dependencies]
+clap = "4.5.32"
+colored = "3.0.0"
+reqwest = { version = "0.12.15", features = ["blocking"] }
