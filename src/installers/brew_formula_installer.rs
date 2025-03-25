@@ -99,6 +99,7 @@ mod brew_formula_installer_tests {
     use super::*;
     
     #[test]
+    #[ignore = "Haven't find way to mock Command::new"]
     fn test_initializer() {
         let installer = BrewFormulaInstaller::new(
             "wget", 
