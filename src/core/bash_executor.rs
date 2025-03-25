@@ -25,3 +25,24 @@ impl Executor for BashExecutor {
         Ok(status.success())
     }
 }
+
+#[cfg(test)]
+mod bash_executor_tests {
+    use super::*;
+
+    #[test]
+    fn test_initializer() {
+        let executor = BashExecutor::new("some_link");
+
+        assert_eq!(executor.path, "some_link");
+    }
+
+    #[test]
+    fn test_execute() {
+        let executor = BashExecutor::new("--help");
+
+        let result = executor.execute();
+
+        assert_eq!(result.is_ok(), true);
+    }
+}
