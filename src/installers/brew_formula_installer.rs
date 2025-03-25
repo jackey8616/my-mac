@@ -93,3 +93,22 @@ impl Installer for BrewFormulaInstaller {
         self.install_via_brew()
     }
 }
+
+#[cfg(test)]
+mod brew_formula_installer_tests {
+    use super::*;
+    
+    #[test]
+    fn test_initializer() {
+        let installer = BrewFormulaInstaller::new(
+            "wget", 
+            "GNU Wget is a file and recursive website downloader"
+        );
+
+        assert_eq!(installer.name(), "wget");
+        assert_eq!(
+            installer.description(), 
+            "GNU Wget is a file and recursive website downloader"
+        );
+    }
+}

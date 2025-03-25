@@ -52,3 +52,20 @@ impl Installer for AppleStoreInstaller {
         Ok(())
     }
 }
+
+#[cfg(test)]
+mod apple_store_installer_tests {
+    use super::*;
+
+    #[test]
+    fn test_initializer() {
+        let installer = AppleStoreInstaller::new(
+            "Test App", 
+            "A test application", 
+            "test-app-bundle-id"
+        );
+
+        assert_eq!(installer.name(), "Test App");
+        assert_eq!(installer.description(), "A test application");
+    }
+}

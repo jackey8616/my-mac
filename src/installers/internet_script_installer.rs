@@ -74,3 +74,20 @@ impl Installer for InternetScriptInstaller {
         }
     }
 }
+
+#[cfg(test)]
+mod internet_script_installer_tests {
+    use super::*;
+
+    #[test]
+    fn test_initializer() {
+        let installer = InternetScriptInstaller::new(
+            "Test Internet Script", 
+            "A test installation script", 
+            "https://invalid.example.com/non-existent-script.sh"
+        );
+
+        assert_eq!(installer.name(), "Test Internet Script");
+        assert_eq!(installer.description(), "A test installation script");
+    }
+}
