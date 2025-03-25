@@ -23,3 +23,23 @@ impl Installation {
         self
     }
 }
+
+#[cfg(test)]
+mod installation_tests {
+    use crate::models::{Installation, InstallationStep, InstallationStepAction};
+
+    #[test]
+    fn test_installation_creation() {
+        let installation = Installation::new("Test Components", "A test installation", true)
+            .with_install_steps(vec![InstallationStep::new(
+                "Test Step",
+                "A sample installation step",
+                InstallationStepAction::BrewFormulaInstall("test-formula".to_string()),
+            )]);
+
+        assert_eq!(installation.name, "Test Components");
+        assert_eq!(installation.description, "A test installation");
+        assert!(installation.is_required);
+        assert_eq!(installation.install_steps.len(), 1);
+    }
+}

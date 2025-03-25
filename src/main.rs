@@ -2,10 +2,7 @@ use std::error::Error;
 
 use my_mac::{
     installers::InstallationManager,
-    models::{
-        installation::Installation, installation_step::InstallationStep,
-        installation_step_action::InstallationStepAction,
-    },
+    models::{Installation, InstallationStep, InstallationStepAction},
 };
 
 fn main() -> Result<(), Box<dyn Error>> {

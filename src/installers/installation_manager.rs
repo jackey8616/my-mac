@@ -5,7 +5,7 @@ use std::{
 };
 
 use crate::{
-    models::{installation::Installation, installation_step_action::InstallationStepAction},
+    models::{Installation, InstallationStepAction},
     traits::Installer,
 };
 
@@ -46,7 +46,6 @@ impl InstallationManager {
                                 let input = buffer[0] as char;
                                 if input == 'y' || input == 'Y' {
                                     break;
-                                } else {
                                 }
                             }
                         }
@@ -68,5 +67,32 @@ impl InstallationManager {
         });
 
         Ok(())
+    }
+}
+
+#[cfg(test)]
+mod installation_manager_tests {
+    use crate::{
+        installers::InstallationManager,
+        models::{Installation, InstallationStep, InstallationStepAction},
+    };
+
+    #[test]
+    fn test_initializer() {
+        let mock_installation = Installation::new("System Test", "Test system components", true)
+            .with_install_steps(vec![InstallationStep::new(
+                "Test Homebrew",
+                "Test Homebrew installation",
+                InstallationStepAction::InternetScriptInstall(
+                    "brew".to_string(),
+                    "https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh"
+                        .to_string(),
+                ),
+            )]);
+
+        let manager = InstallationManager::new().add_installations(vec![mock_installation]);
+
+        assert_eq!(manager.installations.len(), 1);
+        assert_eq!(manager.installations[0].install_steps.len(), 1);
     }
 }

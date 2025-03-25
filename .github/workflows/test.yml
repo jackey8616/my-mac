@@ -1,0 +1,42 @@
+name: Test
+
+on: 
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  test:
+    name: Test
+    runs-on: macos-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: nightly
+          override: true
+
+      - name: Install Tarpaulin
+        run: |
+          cargo +nightly install cargo-tarpaulin
+
+      - name: Test & Generate code coverage
+        run: |
+          cargo +nightly tarpaulin \
+            --verbose \
+            --all-features \
+            --workspace \
+            --timeout 120 \
+            --out xml \
+            --engine llvm
+
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          fail_ci_if_error: true
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: ./cobertura.xml

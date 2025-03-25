@@ -47,3 +47,29 @@ impl Downloader for HttpDownloader {
         Ok(())
     }
 }
+
+#[cfg(test)]
+mod http_downloader_tests {
+    use super::*;
+
+    #[test]
+    fn test_download() {
+        use crate::core::HttpDownloader;
+        use std::fs;
+        use std::path::Path;
+
+        let downloader = HttpDownloader;
+        let test_url = "https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh";
+        let test_path = "./test_download.sh";
+
+        let result = downloader.download(test_url, test_path);
+        assert!(result.is_ok(), "Download should succeed");
+
+        assert!(
+            Path::new(test_path).exists(),
+            "Downloaded file should exist"
+        );
+
+        fs::remove_file(test_path).expect("Should remove test download");
+    }
+}

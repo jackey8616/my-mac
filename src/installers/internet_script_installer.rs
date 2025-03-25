@@ -5,7 +5,7 @@ use std::{
 
 use crate::{
     core::{BashExecutor, HttpDownloader},
-    traits::{Downloader, Installer, ScriptExecutor},
+    traits::{Downloader, Executor, Installer},
 };
 
 use colored::Colorize;
@@ -64,8 +64,7 @@ impl Installer for InternetScriptInstaller {
 
         print!("Executing {} installation script...", self.name);
 
-        let executor: Box<dyn ScriptExecutor> = Box::new(BashExecutor);
-        let success = executor.execute(path.as_str())?;
+        let success = BashExecutor::new(&path).execute()?;
         let _ = fs::remove_file(path);
         if success {
             println!("{} {}", self.name, "installed successfully!".green().bold());
