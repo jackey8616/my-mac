@@ -1,0 +1,67 @@
+name: Release
+on:
+  push:
+    tags:
+      - 'v*'
+
+env:
+  CARGO_TERM_COLOR: always
+  RUST_VERSION: stable
+
+jobs:
+  tests:
+    uses: ./.github/workflows/test.yml
+
+  create-release:
+    name: Create GitHub Release
+    needs: tests
+    runs-on: macos-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          draft: false
+          prerelease: false
+
+  build-and-upload:
+    name: Build macOS Binaries
+    needs: [tests, create-release]
+    strategy:
+      matrix:
+        include:
+          - os: macos-latest
+            target: x86_64-apple-darwin
+            suffix: ''
+          - os: macos-latest
+            target: aarch64-apple-darwin
+            suffix: ''
+
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: ${{ env.RUST_VERSION }}
+          target: ${{ matrix.target }}
+          override: true
+
+      - name: Build Release
+        run: cargo build --release --target ${{ matrix.target }}
+
+      - name: Prepare Artifacts
+        run: |
+          mkdir -p dist
+          cp target/${{ matrix.target }}/release/your-cli-name${{ matrix.suffix }} dist/your-cli-name-${{ matrix.target }}${{ matrix.suffix }}
+
+      - name: Upload Release Assets
+        uses: softprops/action-gh-release@v1
+        with:
+          files: dist/your-cli-name-${{ matrix.target }}${{ matrix.suffix }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
