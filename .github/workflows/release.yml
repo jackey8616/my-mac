@@ -23,9 +23,14 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Build Changelog
+        id: build_changelog
+        uses: mikepenz/release-changelog-builder-action@v5
+
       - name: Create Release
         uses: softprops/action-gh-release@v1
         with:
+          body: ${{steps.build_changelog.outputs.changelog}}
           draft: true
           prerelease: false
 
@@ -60,11 +65,11 @@ jobs:
       - name: Prepare Artifacts
         run: |
           mkdir -p dist
-          cp target/${{ matrix.target }}/release/your-cli-name${{ matrix.suffix }} dist/your-cli-name-${{ matrix.target }}${{ matrix.suffix }}
+          cp target/${{ matrix.target }}/release/my-mac dist/my-mac-${{ matrix.target }}${{ matrix.suffix }}
 
       - name: Upload Release Assets
         uses: softprops/action-gh-release@v1
         with:
-          files: dist/your-cli-name-${{ matrix.target }}${{ matrix.suffix }}
+          files: dist/my-mac-${{ matrix.target }}${{ matrix.suffix }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
