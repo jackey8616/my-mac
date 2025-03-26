@@ -11,6 +11,7 @@ env:
 jobs:
   tests:
     uses: ./.github/workflows/test.yml
+    secrets: inherit
 
   create-release:
     name: Create GitHub Release
