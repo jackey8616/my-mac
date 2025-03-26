@@ -16,6 +16,12 @@ pub struct InstallationManager {
     pub installations: Vec<Installation>,
 }
 
+impl Default for InstallationManager {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl InstallationManager {
     pub fn new() -> Self {
         Self {
@@ -29,14 +35,14 @@ impl InstallationManager {
     }
 
     pub fn install(&self) -> Result<(), Box<dyn Error>> {
-        let _ = self.installations.iter().for_each(|installation| {
+        self.installations.iter().for_each(|installation| {
             println!("Installing {}", installation.name);
             let steps = installation.clone().install_steps;
             for step in steps {
                 match step.action {
                     InstallationStepAction::BrowserOpen(url, wait_user_confirm) => {
                         println!("Opening {} url: {}", step.name, url);
-                        let _ = Command::new("open").args(&["-a", "Safari", &url]).status();
+                        let _ = Command::new("open").args(["-a", "Safari", &url]).status();
                         if wait_user_confirm {
                             print!("Is opened? [Y]");
                             io::stdout().flush().unwrap();

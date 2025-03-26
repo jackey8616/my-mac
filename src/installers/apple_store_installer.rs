@@ -32,12 +32,12 @@ impl Installer for AppleStoreInstaller {
 
     fn is_installed(&self) -> Result<bool, Box<dyn std::error::Error>> {
         let output = Command::new("ls")
-            .args(&["/Applications", "|", "grep", "-i", &self.name])
+            .args(["/Applications", "|", "grep", "-i", &self.name])
             .stdout(Stdio::null())
             .stderr(Stdio::null())
             .output()?;
 
-        Ok(String::from_utf8(output.stdout)?.len() > 0)
+        Ok(!String::from_utf8(output.stdout)?.is_empty())
     }
 
     fn install(&self) -> Result<(), Box<dyn Error>> {

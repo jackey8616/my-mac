@@ -40,7 +40,7 @@ impl<C: Executor<String>> BrewFormulaInstaller<C> {
         };
 
         let status = Command::new("brew")
-            .args(&args)
+            .args(args)
             .stdout(Stdio::inherit())
             .stderr(Stdio::inherit())
             .status()?;

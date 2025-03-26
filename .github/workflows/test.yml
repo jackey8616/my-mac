@@ -24,6 +24,12 @@ jobs:
           toolchain: nightly
           override: true
 
+      - name: Format Check
+        run: cargo fmt -- --cehck
+
+      - name: Clippy Check
+        run: cargo clippy
+
       - name: Test & Generate code coverage
         run: |
           cargo +nightly tarpaulin \

@@ -55,12 +55,10 @@ impl Installer for InternetScriptInstaller {
         let path = format!("./tmp/{}_install.sh", self.name);
         match downloader.download(&self.url, path.as_str()) {
             Ok(_) => (),
-            Err(error) => return Err(error.into()),
+            Err(error) => return Err(error),
         };
 
-        Command::new("chmod")
-            .args(&["+x", path.as_str()])
-            .status()?;
+        Command::new("chmod").args(["+x", path.as_str()]).status()?;
 
         print!("Executing {} installation script...", self.name);
 
@@ -68,9 +66,9 @@ impl Installer for InternetScriptInstaller {
         let _ = fs::remove_file(path);
         if output.is_ok() {
             println!("{} {}", self.name, "installed successfully!".green().bold());
-            return Ok(());
+            Ok(())
         } else {
-            return Err(format!("{} {}!", "Failed to install".red().bold(), self.name).into());
+            Err(format!("{} {}!", "Failed to install".red().bold(), self.name).into())
         }
     }
 }
