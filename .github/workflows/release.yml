@@ -13,30 +13,9 @@ jobs:
     uses: ./.github/workflows/test.yml
     secrets: inherit
 
-  create-release:
-    name: Create GitHub Release
-    needs: tests
-    runs-on: macos-latest
-    permissions: 
-      contents: write
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Build Changelog
-        id: build_changelog
-        uses: mikepenz/release-changelog-builder-action@v5
-
-      - name: Create Release
-        uses: softprops/action-gh-release@v1
-        with:
-          body: ${{steps.build_changelog.outputs.changelog}}
-          draft: true
-          prerelease: false
-
   build-and-upload:
     name: Build macOS Binaries
-    needs: [tests, create-release]
+    needs: [tests]
     strategy:
       matrix:
         include:
@@ -68,9 +47,14 @@ jobs:
           mkdir -p dist
           cp target/${{ matrix.target }}/release/my-mac dist/my-mac-${{ matrix.target }}${{ matrix.suffix }}
 
-      - name: Upload Release Assets
+      - name: Build Changelog
+        id: build_changelog
+        uses: mikepenz/release-changelog-builder-action@v5
+
+      - name: Create Release Assets
         uses: softprops/action-gh-release@v1
         with:
+          body: ${{steps.build_changelog.outputs.changelog}}
+          draft: false
+          prerelease: false
           files: dist/my-mac-${{ matrix.target }}${{ matrix.suffix }}
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
