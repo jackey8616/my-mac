@@ -17,6 +17,8 @@ jobs:
     name: Create GitHub Release
     needs: tests
     runs-on: macos-latest
+    permissions: 
+      contents: write
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -24,7 +26,7 @@ jobs:
       - name: Create Release
         uses: softprops/action-gh-release@v1
         with:
-          draft: false
+          draft: true
           prerelease: false
 
   build-and-upload:
