@@ -25,10 +25,10 @@ jobs:
           override: true
           components: rustfmt, clippy
 
-      - name: Format Check
-        run: cargo fmt -- --cehck
+      - name: Lint Format
+        run: cargo fmt -- --check
 
-      - name: Clippy Check
+      - name: Lint Clippy
         run: cargo clippy
 
       - name: Test & Generate code coverage
