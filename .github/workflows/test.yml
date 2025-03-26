@@ -23,6 +23,7 @@ jobs:
         with:
           toolchain: nightly
           override: true
+          components: rustfmt, clippy
 
       - name: Format Check
         run: cargo fmt -- --cehck
