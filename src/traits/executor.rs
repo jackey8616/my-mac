@@ -1,5 +1,5 @@
 use std::error::Error;
 
-pub trait Executor {
-    fn execute(&self) -> Result<bool, Box<dyn Error>>;
+pub trait Executor<T> {
+    fn execute(&self) -> Result<T, Box<dyn Error>>;
 }

@@ -5,30 +5,23 @@ use std::{
 
 use colored::Colorize;
 
-use crate::traits::Installer;
+use crate::traits::{Executor, Installer};
 
-pub struct BrewFormulaInstaller {
+pub struct BrewFormulaInstaller<C: Executor<String>> {
     formula_name: String,
     description: String,
     _info: String,
+    _executor: C,
 }
 
-impl BrewFormulaInstaller {
-    fn get_brew_package(formula_name: String) -> Result<String, Box<dyn Error>> {
-        let output = Command::new("brew")
-            .args(&["info", &formula_name])
-            .output()?;
-
-        let info = String::from_utf8(output.stdout)?;
-        Ok(info)
-    }
-
-    pub fn new(formula_name: &str, description: &str) -> Self {
-        match Self::get_brew_package(formula_name.to_string()) {
+impl<C: Executor<String>> BrewFormulaInstaller<C> {
+    pub fn new(formula_name: &str, description: &str, executor: C) -> Self {
+        match executor.execute() {
             Ok(info) => Self {
                 formula_name: formula_name.to_string(),
                 description: description.to_string(),
                 _info: info,
+                _executor: executor,
             },
             Err(error) => panic!("{}", error),
         }
@@ -70,7 +63,7 @@ impl BrewFormulaInstaller {
     }
 }
 
-impl Installer for BrewFormulaInstaller {
+impl<C: Executor<String>> Installer for BrewFormulaInstaller<C> {
     fn name(&self) -> &str {
         &self.formula_name
     }
@@ -97,18 +90,32 @@ impl Installer for BrewFormulaInstaller {
 #[cfg(test)]
 mod brew_formula_installer_tests {
     use super::*;
-    
+
     #[test]
-    #[ignore = "Haven't find way to mock Command::new"]
     fn test_initializer() {
+        struct MockExecutor {}
+
+        impl MockExecutor {
+            pub fn new() -> Self {
+                Self {}
+            }
+        }
+
+        impl Executor<String> for MockExecutor {
+            fn execute(&self) -> Result<String, Box<dyn Error>> {
+                Ok("Executed".to_string())
+            }
+        }
+
         let installer = BrewFormulaInstaller::new(
-            "wget", 
-            "GNU Wget is a file and recursive website downloader"
+            "wget",
+            "GNU Wget is a file and recursive website downloader",
+            MockExecutor::new(),
         );
 
         assert_eq!(installer.name(), "wget");
         assert_eq!(
-            installer.description(), 
+            installer.description(),
             "GNU Wget is a file and recursive website downloader"
         );
     }

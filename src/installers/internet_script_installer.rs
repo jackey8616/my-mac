@@ -4,7 +4,7 @@ use std::{
 };
 
 use crate::{
-    core::{BashExecutor, HttpDownloader},
+    core::{CommandExecutor, HttpDownloader},
     traits::{Downloader, Executor, Installer},
 };
 
@@ -64,9 +64,9 @@ impl Installer for InternetScriptInstaller {
 
         print!("Executing {} installation script...", self.name);
 
-        let success = BashExecutor::new(&path).execute()?;
+        let output = CommandExecutor::new("bash".to_string(), vec![path.clone()]).execute();
         let _ = fs::remove_file(path);
-        if success {
+        if output.is_ok() {
             println!("{} {}", self.name, "installed successfully!".green().bold());
             return Ok(());
         } else {
@@ -82,9 +82,9 @@ mod internet_script_installer_tests {
     #[test]
     fn test_initializer() {
         let installer = InternetScriptInstaller::new(
-            "Test Internet Script", 
-            "A test installation script", 
-            "https://invalid.example.com/non-existent-script.sh"
+            "Test Internet Script",
+            "A test installation script",
+            "https://invalid.example.com/non-existent-script.sh",
         );
 
         assert_eq!(installer.name(), "Test Internet Script");

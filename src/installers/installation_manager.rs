@@ -5,6 +5,7 @@ use std::{
 };
 
 use crate::{
+    core::CommandExecutor,
     models::{Installation, InstallationStepAction},
     traits::Installer,
 };
@@ -55,8 +56,13 @@ impl InstallationManager {
                             .install();
                     }
                     InstallationStepAction::BrewFormulaInstall(formula_name) => {
+                        let executor = CommandExecutor::new(
+                            "brew".to_string(),
+                            vec!["info".to_string(), formula_name.clone()],
+                        );
                         let _ =
-                            BrewFormulaInstaller::new(&formula_name, &step.description).install();
+                            BrewFormulaInstaller::new(&formula_name, &step.description, executor)
+                                .install();
                     }
                     InstallationStepAction::AppleStoreOpen(bundle_id) => {
                         let _ = AppleStoreInstaller::new(&step.name, &step.description, &bundle_id)

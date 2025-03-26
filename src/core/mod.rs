@@ -1,5 +1,5 @@
-mod bash_executor;
+mod command_executor;
 mod http_downloader;
 
-pub use bash_executor::BashExecutor;
+pub use command_executor::CommandExecutor;
 pub use http_downloader::HttpDownloader;

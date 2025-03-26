@@ -59,11 +59,8 @@ mod apple_store_installer_tests {
 
     #[test]
     fn test_initializer() {
-        let installer = AppleStoreInstaller::new(
-            "Test App", 
-            "A test application", 
-            "test-app-bundle-id"
-        );
+        let installer =
+            AppleStoreInstaller::new("Test App", "A test application", "test-app-bundle-id");
 
         assert_eq!(installer.name(), "Test App");
         assert_eq!(installer.description(), "A test application");
