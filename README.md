@@ -5,7 +5,12 @@
 
 ## Usage
 ```
-sh install.sh
+./my-mac
+```
+
+### Run locally
+```
+$ cargo run
 ```
 
 ## Install List
