@@ -4,16 +4,14 @@ use super::installation_step::InstallationStep;
 pub struct Installation {
     pub name: String,
     pub description: String,
-    pub is_required: bool,
     pub install_steps: Vec<InstallationStep>,
 }
 
 impl Installation {
-    pub fn new(name: &str, description: &str, is_required: bool) -> Self {
+    pub fn new(name: &str, description: &str) -> Self {
         Self {
             name: name.to_string(),
             description: description.to_string(),
-            is_required,
             install_steps: Vec::new(),
         }
     }
@@ -30,7 +28,7 @@ mod installation_tests {
 
     #[test]
     fn test_installation_creation() {
-        let installation = Installation::new("Test Components", "A test installation", true)
+        let installation = Installation::new("Test Components", "A test installation")
             .with_install_steps(vec![InstallationStep::new(
                 "Test Step",
                 "A sample installation step",
@@ -39,7 +37,6 @@ mod installation_tests {
 
         assert_eq!(installation.name, "Test Components");
         assert_eq!(installation.description, "A test installation");
-        assert!(installation.is_required);
         assert_eq!(installation.install_steps.len(), 1);
     }
 }

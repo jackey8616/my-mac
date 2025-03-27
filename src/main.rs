@@ -7,7 +7,7 @@ use my_mac::{
 
 fn main() -> Result<(), Box<dyn Error>> {
     let system_installation =
-        Installation::new("System Components", "Essentials for MacBook", true).with_install_steps(
+        Installation::new("System Components", "Essentials for MacBook").with_install_steps(
             vec![
                 InstallationStep::new(
                     "Homebrew",
@@ -24,9 +24,8 @@ fn main() -> Result<(), Box<dyn Error>> {
     let karabiner_installation = Installation::new(
         "Karabiner",
         "",
-        true,
     ).with_install_steps(vec![
-        InstallationStep::new("Karabiner", "Keyboard customize manager", InstallationStepAction::BrewFormulaInstall("karabiner-elements".to_string())),
+        InstallationStep::new("Karabiner-Elements", "Keyboard customize manager", InstallationStepAction::BrewFormulaInstall("karabiner-elements".to_string())),
         InstallationStep::new(
             "Karabiner: Vim Mode Plus",
             "A complex modification for Karabiner Elements that mimics Vim's navigation throughout your entire Mac.",
@@ -39,7 +38,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         ),
     ]);
     let other_installation =
-        Installation::new("Other components", "", true).with_install_steps(vec![
+        Installation::new("Other components", "").with_install_steps(vec![
             InstallationStep::new(
                 "Amethyst",
                 "Till window manager",
