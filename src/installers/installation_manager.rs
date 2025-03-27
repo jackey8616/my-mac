@@ -59,7 +59,8 @@ impl InstallationManager {
                         Ok(())
                     }
                     InstallationStepAction::InternetScriptInstall(name, script) => {
-                        let installer = InternetScriptInstaller::new(&name, &step.description, &script);
+                        let installer =
+                            InternetScriptInstaller::new(&name, &step.description, &script);
                         match installer.install() {
                             Ok(_) => Ok(()),
                             Err(err) => Err(err),
@@ -70,21 +71,23 @@ impl InstallationManager {
                             "brew".to_string(),
                             vec!["info".to_string(), formula_name.clone()],
                         );
-                        let installer = BrewFormulaInstaller::new(&formula_name, &step.description, executor);
+                        let installer =
+                            BrewFormulaInstaller::new(&formula_name, &step.description, executor);
                         match installer.install() {
                             Ok(_) => Ok(()),
                             Err(err) => Err(err),
                         }
                     }
                     InstallationStepAction::AppleStoreOpen(bundle_id) => {
-                        let installer = AppleStoreInstaller::new(&step.name, &step.description, &bundle_id);
+                        let installer =
+                            AppleStoreInstaller::new(&step.name, &step.description, &bundle_id);
                         match installer.install() {
                             Ok(_) => Ok(()),
                             Err(err) => Err(err),
                         }
                     }
                 };
-                
+
                 if !step.optional && result.is_err() {
                     let error_message = format!(
                         "Installation failed at non-optional step: '{}' (Description: {}). Original error: {}",

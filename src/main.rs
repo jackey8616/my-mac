@@ -37,24 +37,23 @@ fn main() -> Result<(), Box<dyn Error>> {
             InstallationStepAction::BrowserOpen("karabiner://karabiner/assets/complex_modifications/import?url=https://raw.githubusercontent.com/jackey8616/my-mac/refs/heads/main/karabiner-import-config/chinese-input.json".to_string(), true),
         ),
     ]);
-    let other_installation =
-        Installation::new("Other components", "").with_install_steps(vec![
-            InstallationStep::new(
-                "Amethyst",
-                "Till window manager",
-                InstallationStepAction::BrewFormulaInstall("amethyst".to_string()),
-            ),
-            InstallationStep::new(
-                "Vimlike",
-                "Safari extension for vimlike operate experience",
-                InstallationStepAction::AppleStoreOpen("vimlike/id1584519802".to_string()),
-            ),
-            InstallationStep::new(
-                "Itsycal",
-                "Tiny menu bar calendar.",
-                InstallationStepAction::BrewFormulaInstall("itsycal".to_string()),
-            ),
-        ]);
+    let other_installation = Installation::new("Other components", "").with_install_steps(vec![
+        InstallationStep::new(
+            "Amethyst",
+            "Till window manager",
+            InstallationStepAction::BrewFormulaInstall("amethyst".to_string()),
+        ),
+        InstallationStep::new(
+            "Vimlike",
+            "Safari extension for vimlike operate experience",
+            InstallationStepAction::AppleStoreOpen("vimlike/id1584519802".to_string()),
+        ),
+        InstallationStep::new(
+            "Itsycal",
+            "Tiny menu bar calendar.",
+            InstallationStepAction::BrewFormulaInstall("itsycal".to_string()),
+        ),
+    ]);
 
     let _ = InstallationManager::new()
         .add_installations(vec![
