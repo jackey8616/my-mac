@@ -4,49 +4,76 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this is
 
-A CLI tool (`my-mac`) that bootstraps a fresh macOS machine by running a declarative list of installation steps (Homebrew formulae/casks, internet shell scripts, App Store pages, and Karabiner config imports). Rust, edition 2024.
+A small, declarative bootstrap for a fresh macOS machine. A `Brewfile` lists the
+software (Homebrew casks + Mac App Store apps), and `bootstrap.sh` applies it:
+installs Homebrew if needed, runs `brew bundle`, and triggers the Karabiner
+complex-modification imports. `install.sh` is the curl-able one-liner entry point
+that provisions the essentials first (Xcode CLT, Rosetta, Homebrew), clones the
+repo, then hands off to `bootstrap.sh`. No compiled code — just a Brewfile and
+two shell scripts.
+
+> History: this repo was previously a Rust CLI (`my-mac`) with a trait-layered
+> installer architecture. It was rewritten to the Brewfile + bootstrap model
+> because that is the standard, idempotent, and reliable way to bootstrap macOS,
+> and the Rust version had bugs that broke it on a clean machine.
 
 ## Commands
 
 ```bash
-cargo run            # build + run the installer (the real app — it will actually install things)
-cargo build          # debug build
-cargo build --release  # release build (LTO=fat, stripped)
-cargo test           # run all tests
-cargo test <name>    # run a single test by (substring) name, e.g. cargo test test_installer_steps_fail
-cargo fmt -- --check # format lint — CI fails if not formatted (uses nightly)
-cargo clippy         # lint — CI runs this
+# Remote one-liner (clean Mac): provisions essentials, clones repo, runs bootstrap
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/jackey8616/my-mac/main/install.sh)"
+
+./install.sh                         # same, when the repo is already on disk
+./bootstrap.sh                       # software only (installs Homebrew + everything in Brewfile)
+brew bundle --file=Brewfile          # (re)apply just the Brewfile; idempotent
+brew bundle check --file=Brewfile    # report what's missing without installing
+brew bundle list  --file=Brewfile    # list what the Brewfile would install
+shellcheck install.sh bootstrap.sh   # lint the scripts (CI runs this)
 ```
 
-CI (`.github/workflows/test.yml`) runs on **nightly** toolchain and gates on `cargo fmt --check`, `cargo clippy`, and `cargo tarpaulin` for coverage (uploaded to Codecov). Match nightly formatting locally to avoid CI failures.
+CI (`.github/workflows/lint.yml`) runs ShellCheck on all `*.sh` files via
+`ludeeus/action-shellcheck`. Keep the scripts ShellCheck-clean.
 
-Some tests (`http_downloader`, `command_executor::test_execute`) make real network calls or spawn real processes — they are integration-style and require connectivity.
+## Layout
 
-## Architecture
-
-The codebase is layered by responsibility, with traits as the seams that make installers testable via mock injection:
-
-- **`models/`** — plain data. `Installation` (a named group) contains `Vec<InstallationStep>`. Each `InstallationStep` carries an `InstallationStepAction` enum variant and an `optional` flag. Built with a fluent builder style (`Installation::new(..).with_install_steps(..)`, `InstallationStep::new(..).optional()`).
-
-- **`traits/`** — the interfaces: `Installer` (name/description/is_installed/install), `Executor<T>` (runs something, returns `T`), `Downloader` (url → file). Concrete types depend on these traits so tests can inject mocks (see `BrewFormulaInstaller`'s `MockExecutor`).
-
-- **`core/`** — generic implementations of the traits: `CommandExecutor` (shells out via `std::process::Command`, returns stdout) and `HttpDownloader` (reqwest blocking download with progress).
-
-- **`installers/`** — one concrete `Installer` per action type (`BrewFormulaInstaller`, `InternetScriptInstaller`, `AppleStoreInstaller`), plus `InstallationManager`, the orchestrator.
-
-### Control flow
-
-1. `main.rs` declaratively defines all `Installation` groups and their steps — **this is the source of truth for what gets installed**. To add/remove software, edit `main.rs`.
-2. `InstallationManager::install()` iterates installations → steps, and `match`es on `InstallationStepAction` to dispatch to the right installer (or, for `BrowserOpen`, opens the URL in Safari directly).
-3. If a **non-optional** step fails, `install()` aborts with an error. Optional steps (`.optional()`) swallow failures and continue. This optional/required distinction is the key behavioral contract.
-
-### Adding a new action type
-
-Adding a variant to `InstallationStepAction` requires a matching arm in `InstallationManager::install()`'s `match` (the compiler enforces this), and usually a new `Installer` impl in `installers/`.
+- **`install.sh`** — the remote entry point, meant to be run via the curl one-liner
+  on a clean machine. Provisions essentials in order — Xcode Command Line Tools
+  (waits in a poll loop for the GUI install), Rosetta 2 on `arm64`, Homebrew — then
+  clones/updates the repo into `$MY_MAC_DIR` (default `~/.my-mac`) and `exec`s
+  `bootstrap.sh`. It deliberately keeps stdin on the terminal (use the
+  `/bin/bash -c "$(curl …)"` form, not `curl … | bash`) so prompts/sudo work.
+- **`Brewfile`** — the source of truth for *what* gets installed. To add or remove
+  software, edit this file. Entries: `brew "<formula>"`, `cask "<cask>"`,
+  `mas "<name>", id: <app-store-id>`. Homebrew itself is intentionally not listed
+  (it's the prerequisite `bootstrap.sh` installs first).
+- **`bootstrap.sh`** — the orchestrator (*how* it's installed). Idempotent and safe
+  to re-run. Flow: install Homebrew if missing → put `brew` on PATH
+  (`/opt/homebrew` then `/usr/local`) → nudge to sign in to the App Store →
+  `brew bundle` → open each Karabiner `karabiner://…import?url=…` URL → print a
+  summary. Steps that mirror the old "optional" behavior (App Store app, Karabiner
+  imports) warn-and-continue rather than abort. Each Karabiner import is skipped
+  when its config is already present: `config_title()` reads the JSON's top-level
+  `title` (via `jq` if available, else a `grep`/`sed` fallback) and
+  `karabiner_already_imported()` greps for that title under
+  `~/.config/karabiner/assets/complex_modifications/` — so re-runs don't re-prompt
+  or create duplicate rule sets.
+- **`karabiner-import-config/`** — `vim.json` and `chinese-input.json`, the Karabiner
+  complex modifications. These are fetched **over HTTP** by Karabiner's import
+  scheme, so they must stay at this path on the public `main` branch; the raw
+  GitHub URLs are hardcoded as `KARABINER_BASE` in `bootstrap.sh`.
 
 ## Gotchas
 
-- `InternetScriptInstaller` downloads to `./tmp/<name>_install.sh` — the `./tmp/` directory must exist at runtime or the download fails.
-- `BrewFormulaInstaller::new` runs `brew info <formula>` eagerly in its constructor and **panics** if the executor errors; it also infers cask-vs-formula by string-matching the `brew info` output.
-- `AppleStoreInstaller::install` builds an `open` Command but never calls `.status()`/`.spawn()`, so it currently does not actually open the page.
-- Karabiner complex-modification imports are done via `BrowserOpen` of a `karabiner://` URL pointing at the JSON files in `karabiner-import-config/`.
+- **Mac App Store apps need an active sign-in.** The `mas "Vimlike"` entry fails if
+  you're not signed in to the App Store; `bootstrap.sh` pauses to remind you and
+  treats a `brew bundle` failure as non-fatal.
+- **Karabiner imports require the raw JSON to be reachable on `main`.** Renaming or
+  moving `karabiner-import-config/*.json` breaks the import URLs in `bootstrap.sh`
+  (and `KARABINER_BASE` would need updating to match). The skip-detection also
+  relies on the imported file keeping its `title`; if detection can't determine a
+  title it falls back to prompting (safe) rather than wrongly skipping.
+- **Docker is `cask "docker-desktop"`** (Docker Desktop) — the macOS equivalent of
+  the old Linux-only `get.docker.com` script. For CLI-only Docker, use
+  `brew "docker"` instead.
+- **Cask/MAS ids can be renamed upstream.** If `brew bundle` can't find a token,
+  verify with `brew info <token>` / `mas search <name>` and update the Brewfile.
