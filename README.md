@@ -23,10 +23,17 @@ On a brand-new Mac, paste this into Terminal — no prerequisites:
 3. Installs **[Homebrew](https://brew.sh/)** if missing.
 4. Clones this repo to `~/.my-mac` (override the location with `MY_MAC_DIR`).
 5. Runs [`bootstrap.sh`](./bootstrap.sh), which installs everything in the
-   `Brewfile` and imports the Karabiner configs.
+   `Brewfile`, sets up the shell (zsh + Starship), and imports the Karabiner
+   configs.
 
 > **Sign in to the App Store first.** The `Vimlike` extension installs via the Mac
 > App Store (`mas`), which needs you signed in. The script pauses to remind you.
+
+During the run it also sets up your **shell**: Homebrew's zsh becomes your login
+shell (you'll be prompted for your password by `chsh`), and `~/.zshrc` gets a
+small managed block that loads the [Starship](https://starship.rs/) prompt plus
+`zsh-autosuggestions` and `zsh-syntax-highlighting`. Open a new terminal
+afterwards to pick it up.
 
 Afterwards, a couple of apps need a one-time approval in **System Settings**:
 Karabiner-Elements asks you to allow its driver extension and Input Monitoring,
@@ -67,6 +74,11 @@ brew bundle check --file=Brewfile    # see what's missing without installing
 Defined in [`Brewfile`](./Brewfile):
 
 - [Homebrew](https://brew.sh/) — installed by `bootstrap.sh` (prerequisite)
+- Shell — `zsh` (Homebrew build, set as the login shell) with:
+  - [Starship](https://starship.rs/) prompt — `brew "starship"`, config in [`shell/starship.toml`](./shell/starship.toml)
+  - [zsh-autosuggestions](https://github.com/zsh-users/zsh-autosuggestions) — `brew "zsh-autosuggestions"`
+  - [zsh-syntax-highlighting](https://github.com/zsh-users/zsh-syntax-highlighting) — `brew "zsh-syntax-highlighting"`
+  - wired up in [`shell/my-mac.zsh`](./shell/my-mac.zsh), sourced from `~/.zshrc`
 - [Docker Desktop](https://www.docker.com/products/docker-desktop/) — `cask "docker-desktop"`
 - [Karabiner-Elements](https://karabiner-elements.pqrs.org/) — `cask "karabiner-elements"`
   - Plugin: [Vim Mode Plus](https://github.com/jonasdiemer/karabiner-vim-mode-plus) — imported from [`karabiner-import-config/vim.json`](./karabiner-import-config/vim.json)

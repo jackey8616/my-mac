@@ -100,7 +100,46 @@ else
   warn "brew bundle reported failures (commonly the App Store app when not signed in). Continuing."
 fi
 
-# --- 4. Karabiner complex-modification imports ------------------------------
+# --- 4. Shell (zsh + Starship + plugins) ------------------------------------
+# Source the repo's zsh setup from ~/.zshrc (idempotent via a marker block), then
+# make Homebrew's zsh the default login shell.
+info "Setting up zsh (Starship prompt, autosuggestions, syntax highlighting)."
+
+ZSHRC="$HOME/.zshrc"
+ZSH_MARKER="# >>> my-mac shell setup >>>"
+if grep -qF -- "$ZSH_MARKER" "$ZSHRC" 2>/dev/null; then
+  info "  ~/.zshrc already sources my-mac shell setup — skipping."
+elif {
+    printf '\n%s\n' "$ZSH_MARKER"
+    printf '%s\n' "# Managed by my-mac. Edit shell/my-mac.zsh in the repo, not here."
+    printf 'source "%s/shell/my-mac.zsh"\n' "$SCRIPT_DIR"
+    printf '%s\n' "# <<< my-mac shell setup <<<"
+  } >> "$ZSHRC"; then
+  info "  Added my-mac shell setup to ~/.zshrc."
+else
+  warn "Failed to update ~/.zshrc — add 'source $SCRIPT_DIR/shell/my-mac.zsh' yourself."
+fi
+
+# Make Homebrew's zsh the default login shell (needs sudo for /etc/shells and a
+# terminal for chsh's password prompt — so this is skipped in CI).
+BREW_ZSH="$(brew --prefix)/bin/zsh"
+if [ ! -x "$BREW_ZSH" ]; then
+  warn "Homebrew zsh not found at $BREW_ZSH — skipping default-shell change."
+elif [ "${SHELL:-}" = "$BREW_ZSH" ]; then
+  info "  $BREW_ZSH is already your default shell."
+elif [ ! -r /dev/tty ] && [ -z "${MY_MAC_FORCE_CHSH:-}" ]; then
+  info "  Non-interactive shell — skipping default-shell change (needs your password)."
+else
+  if ! grep -qxF -- "$BREW_ZSH" /etc/shells 2>/dev/null; then
+    info "  Adding $BREW_ZSH to /etc/shells (may prompt for your password)."
+    echo "$BREW_ZSH" | sudo tee -a /etc/shells >/dev/null \
+      || warn "Failed to add $BREW_ZSH to /etc/shells — default-shell change may fail."
+  fi
+  info "  Setting your default shell to $BREW_ZSH (may prompt for your password)."
+  chsh -s "$BREW_ZSH" || warn "chsh failed — set the default shell manually with: chsh -s $BREW_ZSH"
+fi
+
+# --- 5. Karabiner complex-modification imports ------------------------------
 # Skip when there's no terminal (e.g. CI) — the import needs GUI confirmation.
 if [ ! -r /dev/tty ] && [ -z "${MY_MAC_FORCE_KARABINER:-}" ]; then
   info "Non-interactive shell — skipping Karabiner imports (they need GUI confirmation)."
@@ -121,7 +160,7 @@ else
   warn "karabiner-elements not installed — skipping complex-modification imports."
 fi
 
-# --- 5. Summary -------------------------------------------------------------
+# --- 6. Summary -------------------------------------------------------------
 echo
 if [ "${#WARNINGS[@]}" -eq 0 ]; then
   ok "Done. Your Mac is set up."

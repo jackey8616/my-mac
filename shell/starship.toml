@@ -1,0 +1,17 @@
+# starship.toml — Starship prompt config for my-mac.
+#
+# Referenced via STARSHIP_CONFIG in shell/my-mac.zsh. Kept deliberately minimal
+# and font-safe (no Nerd Font glyphs) so it renders in any terminal. Tweak to
+# taste — full reference: https://starship.rs/config/
+
+# Blank line before each prompt for breathing room.
+add_newline = true
+
+# Report how long slow commands took (only when they exceed 2s).
+[cmd_duration]
+min_time = 2000
+
+# Keep long paths readable: show at most the last few segments, relative to repo.
+[directory]
+truncation_length = 4
+truncate_to_repo = true

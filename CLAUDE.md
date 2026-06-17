@@ -53,14 +53,23 @@ CI (`.github/workflows/lint.yml`) runs ShellCheck on all `*.sh` files via
 - **`bootstrap.sh`** — the orchestrator (*how* it's installed). Idempotent and safe
   to re-run. Flow: install Homebrew if missing → put `brew` on PATH
   (`/opt/homebrew` then `/usr/local`) → nudge to sign in to the App Store →
-  `brew bundle` → open each Karabiner `karabiner://…import?url=…` URL → print a
-  summary. Steps that mirror the old "optional" behavior (App Store app, Karabiner
+  `brew bundle` → set up the shell (source `shell/my-mac.zsh` from `~/.zshrc`,
+  make Homebrew zsh the login shell) → open each Karabiner
+  `karabiner://…import?url=…` URL → print a summary. Steps that mirror the old "optional" behavior (App Store app, Karabiner
   imports) warn-and-continue rather than abort. Each Karabiner import is skipped
   when its config is already present: `config_title()` reads the JSON's top-level
   `title` (via `jq` if available, else a `grep`/`sed` fallback) and
   `karabiner_already_imported()` greps for that title under
   `~/.config/karabiner/assets/complex_modifications/` — so re-runs don't re-prompt
   or create duplicate rule sets.
+- **`shell/`** — the interactive zsh setup. `my-mac.zsh` is sourced from `~/.zshrc`
+  (bootstrap appends a guarded `# >>> my-mac shell setup >>>` block with an
+  absolute `source` line pointing back into the repo, so editing `my-mac.zsh`
+  updates every shell). It puts Homebrew on PATH, inits the Starship prompt
+  (config in `shell/starship.toml`, pointed at via `STARSHIP_CONFIG`), and sources
+  `zsh-autosuggestions` then `zsh-syntax-highlighting` (highlighting **must** load
+  last). It has no shebang and a `.zsh` extension on purpose so ShellCheck (which
+  only scans `*.sh`) ignores its zsh-only syntax like `${0:A:h}`.
 - **`karabiner-import-config/`** — `vim.json` and `chinese-input.json`, the Karabiner
   complex modifications. These are fetched **over HTTP** by Karabiner's import
   scheme, so they must stay at this path on the public `main` branch; the raw
@@ -76,6 +85,13 @@ CI (`.github/workflows/lint.yml`) runs ShellCheck on all `*.sh` files via
   (and `KARABINER_BASE` would need updating to match). The skip-detection also
   relies on the imported file keeping its `title`; if detection can't determine a
   title it falls back to prompting (safe) rather than wrongly skipping.
+- **Changing the default shell needs sudo + a terminal.** The shell step adds
+  Homebrew zsh to `/etc/shells` (via `sudo`) and runs `chsh`, both of which prompt.
+  It's skipped when there's no `/dev/tty` (CI) unless `MY_MAC_FORCE_CHSH` is set,
+  and it warns-and-continues on failure. The `~/.zshrc` edit itself is safe and
+  runs everywhere. Editing `shell/my-mac.zsh` after install needs no re-run since
+  `~/.zshrc` sources it by absolute path — but that path is the repo location
+  (`$MY_MAC_DIR`), so moving the checkout breaks the source line.
 - **Docker is `cask "docker-desktop"`** (Docker Desktop) — the macOS equivalent of
   the old Linux-only `get.docker.com` script. For CLI-only Docker, use
   `brew "docker"` instead.
