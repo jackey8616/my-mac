@@ -101,7 +101,10 @@ else
 fi
 
 # --- 4. Karabiner complex-modification imports ------------------------------
-if brew list --cask karabiner-elements >/dev/null 2>&1; then
+# Skip when there's no terminal (e.g. CI) — the import needs GUI confirmation.
+if [ ! -r /dev/tty ] && [ -z "${MY_MAC_FORCE_KARABINER:-}" ]; then
+  info "Non-interactive shell — skipping Karabiner imports (they need GUI confirmation)."
+elif brew list --cask karabiner-elements >/dev/null 2>&1; then
   info "Setting up Karabiner complex modifications."
   for cfg in "${KARABINER_IMPORTS[@]}"; do
     title="$(config_title "$SCRIPT_DIR/karabiner-import-config/$cfg")"
