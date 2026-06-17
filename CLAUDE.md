@@ -56,7 +56,8 @@ Keep the scripts ShellCheck-clean.
   to re-run. Flow: install Homebrew if missing → put `brew` on PATH
   (`/opt/homebrew` then `/usr/local`) → nudge to sign in to the App Store →
   `brew bundle` → set up the shell (source `shell/my-mac.zsh` from `~/.zshrc`,
-  make Homebrew zsh the login shell) → open each Karabiner
+  make Homebrew zsh the login shell) → sign in to the GitHub CLI
+  (`gh auth login`, skipped if already authenticated) → open each Karabiner
   `karabiner://…import?url=…` URL → print a summary. Steps that mirror the old "optional" behavior (App Store app, Karabiner
   imports) warn-and-continue rather than abort. Each Karabiner import is skipped
   when its config is already present: `config_title()` reads the JSON's top-level
@@ -88,6 +89,11 @@ Keep the scripts ShellCheck-clean.
   (and `KARABINER_BASE` would need updating to match). The skip-detection also
   relies on the imported file keeping its `title`; if detection can't determine a
   title it falls back to prompting (safe) rather than wrongly skipping.
+- **`gh auth login` is interactive.** The GitHub CLI sign-in step is skipped when
+  `gh auth status` already passes and when there's no `/dev/tty` (CI) unless
+  `MY_MAC_FORCE_GH` is set; it warns-and-continues if login doesn't finish. Choose
+  the `workflow` token scope if you'll push changes under `.github/workflows/`
+  (otherwise such pushes are rejected). gh stores the token in the macOS keychain.
 - **Changing the default shell needs sudo + a terminal.** The shell step adds
   Homebrew zsh to `/etc/shells` (via `sudo`) and runs `chsh`, both of which prompt.
   It's skipped when there's no `/dev/tty` (CI) unless `MY_MAC_FORCE_CHSH` is set,

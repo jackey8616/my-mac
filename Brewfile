@@ -8,6 +8,10 @@
 # CLI to install Mac App Store apps (required by the `mas` entries below)
 brew "mas"
 
+# GitHub CLI — PRs/issues from the terminal; also a git auth/credential helper.
+# bootstrap.sh signs you in (`gh auth login`) if you aren't already.
+brew "gh"
+
 # Shell (zsh + niceties). zsh is macOS's default; the Homebrew build is newer and
 # bootstrap.sh makes it the login shell. The plugins and prompt are wired up in
 # shell/my-mac.zsh, which bootstrap.sh sources from ~/.zshrc.
