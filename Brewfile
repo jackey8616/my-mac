@@ -23,6 +23,7 @@ cask "amethyst"            # tiling window manager
 cask "itsycal"             # tiny menu bar calendar
 cask "visual-studio-code"  # code editor
 cask "tableplus"           # database GUI client
+cask "discord"             # voice and text chat
 
 # Mac App Store apps (requires being signed in to the App Store)
 mas "Vimlike", id: 1584519802  # Safari extension for vim-like browsing
