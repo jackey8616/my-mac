@@ -4,8 +4,10 @@
 # command-line syntax highlighting. This file lives in the repo — edit it here
 # and the changes apply on your next shell (~/.zshrc just sources it).
 #
-# NOTE: this is zsh, not POSIX sh — it deliberately has no shebang and a .zsh
-# extension so ShellCheck (which only scans *.sh) leaves it alone.
+# NOTE: this is zsh, not POSIX sh. It has no shebang because it's sourced, not
+# executed, and its zsh-only syntax (e.g. ${0:A:h}) can't be parsed by ShellCheck
+# — so the lint workflow excludes the shell/ dir (ignore_paths in
+# .github/workflows/lint.yml).
 
 # Directory this file lives in. zsh sets $0 to the sourced file's path, and the
 # :A:h modifiers turn it into an absolute directory.

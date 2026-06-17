@@ -11,5 +11,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Run ShellCheck
-        # Scans all *.sh files in the repo (bootstrap.sh) by default.
+        # Scans shell scripts repo-wide (it picks up *.zsh too, not just *.sh).
+        # The shell/ dir holds zsh config (shell/my-mac.zsh) with zsh-only syntax
+        # ShellCheck can't parse, so exclude it.
         uses: ludeeus/action-shellcheck@master
+        with:
+          ignore_paths: shell

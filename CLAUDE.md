@@ -31,8 +31,10 @@ brew bundle list  --file=Brewfile    # list what the Brewfile would install
 shellcheck install.sh bootstrap.sh   # lint the scripts (CI runs this)
 ```
 
-CI (`.github/workflows/lint.yml`) runs ShellCheck on all `*.sh` files via
-`ludeeus/action-shellcheck`. Keep the scripts ShellCheck-clean.
+CI (`.github/workflows/lint.yml`) runs ShellCheck repo-wide via
+`ludeeus/action-shellcheck` (it lints `*.zsh` too, not just `*.sh`), excluding
+the `shell/` dir — that holds zsh config it can't parse (`ignore_paths: shell`).
+Keep the scripts ShellCheck-clean.
 
 ## Layout
 
@@ -68,8 +70,9 @@ CI (`.github/workflows/lint.yml`) runs ShellCheck on all `*.sh` files via
   updates every shell). It puts Homebrew on PATH, inits the Starship prompt
   (config in `shell/starship.toml`, pointed at via `STARSHIP_CONFIG`), and sources
   `zsh-autosuggestions` then `zsh-syntax-highlighting` (highlighting **must** load
-  last). It has no shebang and a `.zsh` extension on purpose so ShellCheck (which
-  only scans `*.sh`) ignores its zsh-only syntax like `${0:A:h}`.
+  last). It has no shebang because it's sourced, not executed; its zsh-only
+  syntax (e.g. `${0:A:h}`) can't be parsed by ShellCheck, so the lint workflow
+  excludes the `shell/` dir via `ignore_paths: shell`.
 - **`karabiner-import-config/`** — `vim.json` and `chinese-input.json`, the Karabiner
   complex modifications. These are fetched **over HTTP** by Karabiner's import
   scheme, so they must stay at this path on the public `main` branch; the raw
