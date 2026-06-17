@@ -42,6 +42,10 @@ CI (`.github/workflows/lint.yml`) runs ShellCheck on all `*.sh` files via
   clones/updates the repo into `$MY_MAC_DIR` (default `~/.my-mac`) and `exec`s
   `bootstrap.sh`. It deliberately keeps stdin on the terminal (use the
   `/bin/bash -c "$(curl …)"` form, not `curl … | bash`) so prompts/sudo work.
+  It clones the published `main` by default; set `MY_MAC_REF=<branch-or-tag>` to
+  install a different ref (used to test a branch before merging). The new files
+  must be on the remote for this to work — `install.sh` only fetches what's
+  pushed, so a local-only branch won't appear in the `~/.my-mac` checkout.
 - **`Brewfile`** — the source of truth for *what* gets installed. To add or remove
   software, edit this file. Entries: `brew "<formula>"`, `cask "<cask>"`,
   `mas "<name>", id: <app-store-id>`. Homebrew itself is intentionally not listed

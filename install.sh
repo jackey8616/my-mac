@@ -10,13 +10,15 @@
 # Apple Silicon, Homebrew), fetches this repo, then hands off to bootstrap.sh,
 # which installs the software in the Brewfile and the Karabiner configs.
 #
-# Idempotent and safe to re-run. Override the checkout location with MY_MAC_DIR.
+# Idempotent and safe to re-run. Env overrides: MY_MAC_DIR (checkout location,
+# default ~/.my-mac), MY_MAC_REF (branch or tag to install, default main).
 #
 set -uo pipefail
 
 REPO_URL="https://github.com/jackey8616/my-mac.git"
-TARBALL_URL="https://github.com/jackey8616/my-mac/archive/refs/heads/main.tar.gz"
 TARGET_DIR="${MY_MAC_DIR:-$HOME/.my-mac}"
+REF="${MY_MAC_REF:-main}"
+TARBALL_URL="https://github.com/jackey8616/my-mac/archive/refs/heads/${REF}.tar.gz"
 
 # --- output helpers ---------------------------------------------------------
 if [ -t 1 ]; then
@@ -80,15 +82,22 @@ elif [ -x /usr/local/bin/brew ]; then
 fi
 command -v brew >/dev/null 2>&1 || die "brew not on PATH after install."
 
-# --- 4. Fetch this repo -----------------------------------------------------
+# --- 4. Fetch this repo (ref = MY_MAC_REF, default main) --------------------
 if [ -d "$TARGET_DIR/.git" ]; then
-  info "Updating existing checkout at $TARGET_DIR..."
-  git -C "$TARGET_DIR" pull --ff-only || warn "Could not update $TARGET_DIR; using the existing copy."
+  info "Updating existing checkout at $TARGET_DIR (ref: $REF)..."
+  # fetch + checkout the requested ref so re-runs can switch branches and a
+  # stale checkout recovers instead of getting stuck.
+  if git -C "$TARGET_DIR" fetch --depth 1 origin "$REF" >/dev/null 2>&1; then
+    git -C "$TARGET_DIR" checkout -f FETCH_HEAD >/dev/null 2>&1 \
+      || warn "Could not check out $REF; using the existing copy."
+  else
+    warn "Could not fetch $REF; using the existing copy."
+  fi
 elif command -v git >/dev/null 2>&1; then
-  info "Cloning my-mac into $TARGET_DIR..."
-  git clone --depth 1 "$REPO_URL" "$TARGET_DIR" || die "git clone failed."
+  info "Cloning my-mac ($REF) into $TARGET_DIR..."
+  git clone --depth 1 --branch "$REF" "$REPO_URL" "$TARGET_DIR" || die "git clone failed."
 else
-  info "Downloading my-mac into $TARGET_DIR..."
+  info "Downloading my-mac ($REF) into $TARGET_DIR..."
   mkdir -p "$TARGET_DIR"
   curl -fsSL "$TARBALL_URL" | tar -xz -C "$TARGET_DIR" --strip-components=1 \
     || die "Download failed."
