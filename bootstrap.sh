@@ -140,20 +140,24 @@ else
 fi
 
 # --- 5. GitHub CLI (gh) sign-in ---------------------------------------------
-# Authenticate gh so it (and git pushes over HTTPS) just work. Skipped when
-# already signed in, and when there's no terminal (the login flow is
-# interactive) unless MY_MAC_FORCE_GH is set. The browser flow is the easiest;
-# pick the 'workflow' scope if you'll push changes under .github/workflows/.
+# Authenticate gh and pin git operations to SSH, so pushes use your SSH key
+# (gh's web login can generate/upload one for you). Skipped when already signed
+# in — but we still enforce the SSH protocol — and when there's no terminal (the
+# login flow is interactive) unless MY_MAC_FORCE_GH is set. The browser flow is
+# easiest; pick the 'workflow' scope if you'll push changes under .github/workflows/.
 info "Signing in to the GitHub CLI (gh)."
 if ! command -v gh >/dev/null 2>&1; then
   warn "gh not installed — skipping GitHub sign-in."
 elif gh auth status >/dev/null 2>&1; then
   info "  Already signed in to GitHub."
+  gh config set git_protocol ssh --host github.com \
+    || warn "Couldn't set gh's git protocol to ssh — check 'gh config get git_protocol'."
 elif [ ! -r /dev/tty ] && [ -z "${MY_MAC_FORCE_GH:-}" ]; then
-  info "  Non-interactive shell — skipping (run 'gh auth login' yourself later)."
+  info "  Non-interactive shell — skipping (run 'gh auth login --git-protocol ssh' yourself later)."
 else
   info "  Follow the prompts (the browser/web option is easiest)."
-  gh auth login || warn "gh sign-in didn't complete — run 'gh auth login' yourself."
+  gh auth login --hostname github.com --git-protocol ssh \
+    || warn "gh sign-in didn't complete — run 'gh auth login --git-protocol ssh' yourself."
 fi
 
 # --- 6. Karabiner complex-modification imports ------------------------------

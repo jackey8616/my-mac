@@ -74,7 +74,7 @@ brew bundle check --file=Brewfile    # see what's missing without installing
 Defined in [`Brewfile`](./Brewfile):
 
 - [Homebrew](https://brew.sh/) — installed by `bootstrap.sh` (prerequisite)
-- [GitHub CLI](https://cli.github.com/) — `brew "gh"`; bootstrap runs `gh auth login` to sign you in
+- [GitHub CLI](https://cli.github.com/) — `brew "gh"`; bootstrap runs `gh auth login --git-protocol ssh` to sign you in and push over SSH
 - Shell — `zsh` (Homebrew build, set as the login shell) with:
   - [Starship](https://starship.rs/) prompt — `brew "starship"`, config in [`shell/starship.toml`](./shell/starship.toml)
   - [zsh-autosuggestions](https://github.com/zsh-users/zsh-autosuggestions) — `brew "zsh-autosuggestions"`

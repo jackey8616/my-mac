@@ -89,11 +89,13 @@ Keep the scripts ShellCheck-clean.
   (and `KARABINER_BASE` would need updating to match). The skip-detection also
   relies on the imported file keeping its `title`; if detection can't determine a
   title it falls back to prompting (safe) rather than wrongly skipping.
-- **`gh auth login` is interactive.** The GitHub CLI sign-in step is skipped when
-  `gh auth status` already passes and when there's no `/dev/tty` (CI) unless
-  `MY_MAC_FORCE_GH` is set; it warns-and-continues if login doesn't finish. Choose
-  the `workflow` token scope if you'll push changes under `.github/workflows/`
-  (otherwise such pushes are rejected). gh stores the token in the macOS keychain.
+- **`gh auth login` is interactive.** The GitHub CLI sign-in step runs
+  `gh auth login --git-protocol ssh` (so pushes use SSH); when already signed in
+  it instead runs `gh config set git_protocol ssh` to enforce SSH. It's skipped
+  when there's no `/dev/tty` (CI) unless `MY_MAC_FORCE_GH` is set, and
+  warns-and-continues if login doesn't finish. Choose the `workflow` token scope
+  if you'll push changes under `.github/workflows/` (otherwise such pushes are
+  rejected). gh stores the token in the macOS keychain.
 - **Changing the default shell needs sudo + a terminal.** The shell step adds
   Homebrew zsh to `/etc/shells` (via `sudo`) and runs `chsh`, both of which prompt.
   It's skipped when there's no `/dev/tty` (CI) unless `MY_MAC_FORCE_CHSH` is set,
