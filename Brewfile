@@ -8,6 +8,14 @@
 # CLI to install Mac App Store apps (required by the `mas` entries below)
 brew "mas"
 
+# Shell (zsh + niceties). zsh is macOS's default; the Homebrew build is newer and
+# bootstrap.sh makes it the login shell. The plugins and prompt are wired up in
+# shell/my-mac.zsh, which bootstrap.sh sources from ~/.zshrc.
+brew "zsh"                      # newer zsh than the system one
+brew "zsh-autosuggestions"     # fish-style "ghost text" suggestions from history
+brew "zsh-syntax-highlighting" # colourises the command line as you type
+brew "starship"                # cross-shell prompt (git, versions, exit codes)
+
 # Apps (casks)
 cask "docker-desktop"      # was the Linux-only get.docker.com script; Docker Desktop is the macOS equivalent
 cask "karabiner-elements"  # keyboard customization manager
