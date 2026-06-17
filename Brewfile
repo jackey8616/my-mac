@@ -13,6 +13,8 @@ cask "docker-desktop"      # was the Linux-only get.docker.com script; Docker De
 cask "karabiner-elements"  # keyboard customization manager
 cask "amethyst"            # tiling window manager
 cask "itsycal"             # tiny menu bar calendar
+cask "visual-studio-code"  # code editor
+cask "tableplus"           # database GUI client
 
 # Mac App Store apps (requires being signed in to the App Store)
 mas "Vimlike", id: 1584519802  # Safari extension for vim-like browsing
