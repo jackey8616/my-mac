@@ -1,0 +1,44 @@
+name: macOS install test
+
+# Real end-to-end test: run the bootstrap on a clean macOS runner and verify
+# every Brewfile entry actually installed. macOS minutes are expensive, so this
+# is gated to relevant changes, manual runs, and a weekly schedule (the weekly
+# run also catches upstream cask/formula renames before users hit them).
+on:
+  push:
+    branches: [main]
+    paths:
+      - Brewfile
+      - bootstrap.sh
+      - install.sh
+      - verify.sh
+      - .github/workflows/macos.yml
+  pull_request:
+    paths:
+      - Brewfile
+      - bootstrap.sh
+      - install.sh
+      - verify.sh
+      - .github/workflows/macos.yml
+  workflow_dispatch:
+  schedule:
+    - cron: "0 6 * * 1" # Mondays 06:00 UTC
+
+jobs:
+  install-and-verify:
+    name: Bootstrap + verify
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # Homebrew is preinstalled on the runner. bootstrap.sh skips the Homebrew
+      # install, runs `brew bundle`, and skips the Karabiner GUI imports because
+      # there's no terminal. The Mac App Store app can't install without a
+      # sign-in; bootstrap treats that as a non-fatal warning.
+      - name: Run bootstrap
+        run: ./bootstrap.sh
+
+      # The real assertion: every cask/formula must be installed. The mas app is
+      # reported as skipped under CI (no App Store sign-in).
+      - name: Verify essentials
+        run: ./verify.sh
