@@ -85,6 +85,9 @@ Defined in [`Brewfile`](./Brewfile):
   - Plugin: Chinese-English switch — imported from [`karabiner-import-config/chinese-input.json`](./karabiner-import-config/chinese-input.json) (modified version stored in this repo)
 - [Amethyst](https://github.com/ianyh/Amethyst) — `cask "amethyst"`
 - [Itsycal](https://www.mowglii.com/itsycal/) — `cask "itsycal"`
+- [Visual Studio Code](https://code.visualstudio.com/) — `cask "visual-studio-code"`
+- [TablePlus](https://tableplus.com/) — `cask "tableplus"`
+- [Discord](https://discord.com/) — `cask "discord"`
 - [Vimlike](https://apps.apple.com/app/id1584519802) — Safari extension, via Mac App Store (`mas`)
 
 To change what gets installed, edit the `Brewfile`.
