@@ -55,8 +55,9 @@ Keep the scripts ShellCheck-clean.
 - **`bootstrap.sh`** — the orchestrator (*how* it's installed). Idempotent and safe
   to re-run. Flow: install Homebrew if missing → put `brew` on PATH
   (`/opt/homebrew` then `/usr/local`) → nudge to sign in to the App Store →
-  `brew bundle` → `brew pin` every installed Brewfile formula/cask so re-runs and
-  `brew upgrade` don't bump them (`pin_brewfile()`) → set up the shell (source
+  `brew bundle --no-upgrade` (install only what's missing, leaving existing
+  versions untouched) → `brew pin` every installed Brewfile formula/cask so re-runs
+  and `brew upgrade` don't bump them (`brew_pin_each`) → set up the shell (source
   `shell/my-mac.zsh` from `~/.zshrc`, make Homebrew zsh the login shell) → sign in
   to the GitHub CLI
   (`gh auth login`, skipped if already authenticated) → open each Karabiner
@@ -91,17 +92,20 @@ Keep the scripts ShellCheck-clean.
   (and `KARABINER_BASE` would need updating to match). The skip-detection also
   relies on the imported file keeping its `title`; if detection can't determine a
   title it falls back to prompting (safe) rather than wrongly skipping.
-- **Pinning freezes the installed version, not a Brewfile-declared one.** Homebrew
-  is rolling-release and keeps no old-bottle archive, so the Brewfile can't request
-  an exact version and a fresh machine always installs the latest. The pin step
-  (`pin_brewfile()`) runs `brew pin` on each installed formula/cask so a later
-  `brew upgrade` or `brew bundle` re-run won't bump them — i.e. it locks *what you
-  have*, it does not make installs reproducible across machines. Release a pin with
-  `brew unpin <name>`. Three caveats: casks with `auto_updates true` (e.g.
-  `docker-desktop`, `visual-studio-code`) can still self-update despite the pin;
-  Mac App Store apps (`mas`) can't be pinned at all (warn-and-continue); and pins
-  are local machine state, not tracked in the repo. `brew pin` is idempotent, so
-  re-runs are safe.
+- **Re-runs don't upgrade; pinning freezes the installed version.** Homebrew is
+  rolling-release and keeps no old-bottle archive, so the Brewfile *can't* request
+  an exact version (`brew "x", version: …` isn't a thing) and a fresh machine always
+  installs the latest. Two things keep a re-run from silently bumping you: step 3
+  runs `brew bundle --no-upgrade` (install only what's missing, leave existing
+  versions alone), and step 4 (`brew_pin_each`) runs `brew pin` on each installed
+  formula/cask so even a manual `brew upgrade` skips them. So it locks *what you
+  have*; it does not make installs reproducible across machines. To upgrade, run
+  with `MY_MAC_UPGRADE=1` (unpins → `brew bundle --upgrade` → re-pins) or
+  `brew unpin <name>` a single package by hand. Three caveats: casks with
+  `auto_updates true` (e.g. `docker-desktop`, `visual-studio-code`) can still
+  self-update despite the pin; Mac App Store apps (`mas`) can't be pinned at all
+  (warn-and-continue); and pins are local machine state, not tracked in the repo.
+  `brew pin` is idempotent, so re-runs are safe.
 - **`gh auth login` is interactive.** The GitHub CLI sign-in step runs
   `gh auth login --git-protocol ssh` (so pushes use SSH); when already signed in
   it instead runs `gh config set git_protocol ssh` to enforce SSH. It's skipped

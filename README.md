@@ -58,11 +58,14 @@ Karabiner configs (steps 3–5 above). Use this when you already have a checkout
 The whole script is **idempotent** — run it again any time:
 
 - Homebrew install is skipped when `brew` is already present.
-- `brew bundle` installs only what's missing.
-- Installed packages are **pinned**, so re-runs and `brew upgrade` won't change
-  their versions. Run `brew unpin <name>` when you actually want to upgrade one.
-  (Casks that auto-update — e.g. Docker Desktop, VS Code — can still update
-  themselves; App Store apps can't be pinned.)
+- `brew bundle` installs only what's **missing** and, by default, leaves
+  already-installed packages at their current versions (no auto-upgrade) — so you
+  can add one app and re-run without bumping everything else.
+- Installed packages are also **pinned**, so even `brew upgrade` won't change their
+  versions. To upgrade, run with **`MY_MAC_UPGRADE=1`** (unpins everything,
+  upgrades to the latest, then re-pins) or `brew unpin <name>` for a single
+  package. (Casks that auto-update — e.g. Docker Desktop, VS Code — can still
+  update themselves; App Store apps can't be pinned.)
 - Karabiner imports are skipped automatically for any config already imported
   (detected by title under `~/.config/karabiner/assets/complex_modifications/`),
   so a re-run won't re-prompt or create duplicate rule sets.

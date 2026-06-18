@@ -69,6 +69,26 @@ karabiner_already_imported() {
   grep -rqF -- "$title" "$KARABINER_ASSETS" 2>/dev/null
 }
 
+# Pin or unpin every installed Brewfile package of one kind. Used to lock
+# versions after install, and to release them when MY_MAC_UPGRADE forces upgrades
+# (pinned packages are otherwise skipped by `brew upgrade`).
+#   $1: pin|unpin   $2: --formula|--cask
+brew_pin_each() {
+  local action="$1" flag="$2" name
+  while IFS= read -r name; do
+    [ -n "$name" ] || continue
+    if ! brew list "$flag" "$name" >/dev/null 2>&1; then
+      [ "$action" = pin ] && warn "  $name is in the Brewfile but not installed — can't pin it."
+      continue
+    fi
+    if [ "$action" = pin ]; then
+      brew pin "$flag" "$name" >/dev/null 2>&1 || warn "  Couldn't pin $name."
+    else
+      brew unpin "$flag" "$name" >/dev/null 2>&1 || true
+    fi
+  done < <(brew bundle list "$flag" --file="$SCRIPT_DIR/Brewfile" 2>/dev/null)
+}
+
 # --- 1. Homebrew ------------------------------------------------------------
 if command -v brew >/dev/null 2>&1; then
   info "Homebrew already installed."
@@ -93,8 +113,22 @@ info "The Mac App Store app (Vimlike) requires you to be signed in to the App St
 pause "Sign in via the App Store, then press Enter to continue (Ctrl-C to abort)... "
 
 # --- 3. brew bundle ---------------------------------------------------------
-info "Installing software from Brewfile..."
-if brew bundle --file="$SCRIPT_DIR/Brewfile"; then
+# Default: install only what's MISSING and leave already-installed packages at
+# their current versions (`--no-upgrade`). With the pin step below, a re-run never
+# silently bumps anything — so you can add a package and reinstall without
+# upgrading everything else. Set MY_MAC_UPGRADE=1 to opt into upgrades: that
+# unpins first (pins otherwise block `brew upgrade`), runs `brew bundle --upgrade`,
+# and step 4 re-pins at the new versions.
+if [ -n "${MY_MAC_UPGRADE:-}" ]; then
+  info "MY_MAC_UPGRADE set — upgrading everything to the latest, then re-pinning."
+  brew_pin_each unpin --formula
+  brew_pin_each unpin --cask
+  bundle_mode=(--upgrade)
+else
+  info "Installing missing software from Brewfile (existing versions left as-is; MY_MAC_UPGRADE=1 to upgrade)."
+  bundle_mode=(--no-upgrade)
+fi
+if brew bundle "${bundle_mode[@]}" --file="$SCRIPT_DIR/Brewfile"; then
   ok "Brewfile applied."
 else
   warn "brew bundle reported failures (commonly the App Store app when not signed in). Continuing."
@@ -103,29 +137,18 @@ fi
 # --- 4. Pin package versions ------------------------------------------------
 # Homebrew is rolling-release: it can't pin exact versions declaratively, and a
 # fresh machine always installs whatever is latest. What we *can* do is pin every
-# installed Brewfile formula and cask, so neither `brew upgrade` nor a re-run of
-# `brew bundle` bumps them. Release a pin later with `brew unpin <name>`.
+# installed Brewfile formula and cask, so neither `brew upgrade` nor a default
+# re-run of this script bumps them. To upgrade, run with MY_MAC_UPGRADE=1 (unpins,
+# upgrades, re-pins) or `brew unpin <name>` a single package by hand.
 # Caveats: this freezes the *installed* version (not a version the Brewfile can
 # request, so it's not reproducible across machines); casks with `auto_updates
 # true` (e.g. docker-desktop, visual-studio-code) can still update themselves
 # despite the pin; and Mac App Store apps (mas) can't be pinned at all.
 # Idempotent: re-pinning an already-pinned package is a no-op.
 info "Pinning installed packages so their versions stay put."
-pin_brewfile() {
-  # $1: --formula or --cask — pin every installed package of that kind.
-  local flag="$1" name
-  while IFS= read -r name; do
-    [ -n "$name" ] || continue
-    if ! brew list "$flag" "$name" >/dev/null 2>&1; then
-      warn "  $name is in the Brewfile but not installed — can't pin it."
-      continue
-    fi
-    brew pin "$flag" "$name" >/dev/null 2>&1 || warn "  Couldn't pin $name."
-  done < <(brew bundle list "$flag" --file="$SCRIPT_DIR/Brewfile" 2>/dev/null)
-}
-pin_brewfile --formula
-pin_brewfile --cask
-ok "Pinned installed formulae and casks ('brew unpin <name>' to allow upgrades)."
+brew_pin_each pin --formula
+brew_pin_each pin --cask
+ok "Pinned installed formulae and casks ('brew unpin <name>' or MY_MAC_UPGRADE=1 to upgrade)."
 
 # --- 5. Shell (zsh + Starship + plugins) ------------------------------------
 # Source the repo's zsh setup from ~/.zshrc (idempotent via a marker block), then
