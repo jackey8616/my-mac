@@ -100,7 +100,34 @@ else
   warn "brew bundle reported failures (commonly the App Store app when not signed in). Continuing."
 fi
 
-# --- 4. Shell (zsh + Starship + plugins) ------------------------------------
+# --- 4. Pin package versions ------------------------------------------------
+# Homebrew is rolling-release: it can't pin exact versions declaratively, and a
+# fresh machine always installs whatever is latest. What we *can* do is pin every
+# installed Brewfile formula and cask, so neither `brew upgrade` nor a re-run of
+# `brew bundle` bumps them. Release a pin later with `brew unpin <name>`.
+# Caveats: this freezes the *installed* version (not a version the Brewfile can
+# request, so it's not reproducible across machines); casks with `auto_updates
+# true` (e.g. docker-desktop, visual-studio-code) can still update themselves
+# despite the pin; and Mac App Store apps (mas) can't be pinned at all.
+# Idempotent: re-pinning an already-pinned package is a no-op.
+info "Pinning installed packages so their versions stay put."
+pin_brewfile() {
+  # $1: --formula or --cask — pin every installed package of that kind.
+  local flag="$1" name
+  while IFS= read -r name; do
+    [ -n "$name" ] || continue
+    if ! brew list "$flag" "$name" >/dev/null 2>&1; then
+      warn "  $name is in the Brewfile but not installed — can't pin it."
+      continue
+    fi
+    brew pin "$flag" "$name" >/dev/null 2>&1 || warn "  Couldn't pin $name."
+  done < <(brew bundle list "$flag" --file="$SCRIPT_DIR/Brewfile" 2>/dev/null)
+}
+pin_brewfile --formula
+pin_brewfile --cask
+ok "Pinned installed formulae and casks ('brew unpin <name>' to allow upgrades)."
+
+# --- 5. Shell (zsh + Starship + plugins) ------------------------------------
 # Source the repo's zsh setup from ~/.zshrc (idempotent via a marker block), then
 # make Homebrew's zsh the default login shell.
 info "Setting up zsh (Starship prompt, autosuggestions, syntax highlighting)."
@@ -139,7 +166,7 @@ else
   chsh -s "$BREW_ZSH" || warn "chsh failed — set the default shell manually with: chsh -s $BREW_ZSH"
 fi
 
-# --- 5. GitHub CLI (gh) sign-in ---------------------------------------------
+# --- 6. GitHub CLI (gh) sign-in ---------------------------------------------
 # Authenticate gh and pin git operations to SSH, so pushes use your SSH key
 # (gh's web login can generate/upload one for you). Skipped when already signed
 # in — but we still enforce the SSH protocol — and when there's no terminal (the
@@ -160,7 +187,7 @@ else
     || warn "gh sign-in didn't complete — run 'gh auth login --git-protocol ssh' yourself."
 fi
 
-# --- 6. Karabiner complex-modification imports ------------------------------
+# --- 7. Karabiner complex-modification imports ------------------------------
 # Skip when there's no terminal (e.g. CI) — the import needs GUI confirmation.
 if [ ! -r /dev/tty ] && [ -z "${MY_MAC_FORCE_KARABINER:-}" ]; then
   info "Non-interactive shell — skipping Karabiner imports (they need GUI confirmation)."
@@ -181,7 +208,7 @@ else
   warn "karabiner-elements not installed — skipping complex-modification imports."
 fi
 
-# --- 7. Summary -------------------------------------------------------------
+# --- 8. Summary -------------------------------------------------------------
 echo
 if [ "${#WARNINGS[@]}" -eq 0 ]; then
   ok "Done. Your Mac is set up."
