@@ -23,8 +23,8 @@ On a brand-new Mac, paste this into Terminal — no prerequisites:
 3. Installs **[Homebrew](https://brew.sh/)** if missing.
 4. Clones this repo to `~/.my-mac` (override the location with `MY_MAC_DIR`).
 5. Runs [`bootstrap.sh`](./bootstrap.sh), which installs everything in the
-   `Brewfile`, sets up the shell (zsh + Starship), and imports the Karabiner
-   configs.
+   `Brewfile`, sets up the shell (zsh + Starship), signs you in to the GitHub
+   CLI (`gh`), and imports the Karabiner configs.
 
 > **Sign in to the App Store first.** The `Vimlike` extension installs via the Mac
 > App Store (`mas`), which needs you signed in. The script pauses to remind you.
@@ -74,6 +74,7 @@ brew bundle check --file=Brewfile    # see what's missing without installing
 Defined in [`Brewfile`](./Brewfile):
 
 - [Homebrew](https://brew.sh/) — installed by `bootstrap.sh` (prerequisite)
+- [GitHub CLI](https://cli.github.com/) — `brew "gh"`; bootstrap runs `gh auth login --git-protocol ssh` to sign you in and push over SSH
 - Shell — `zsh` (Homebrew build, set as the login shell) with:
   - [Starship](https://starship.rs/) prompt — `brew "starship"`, config in [`shell/starship.toml`](./shell/starship.toml)
   - [zsh-autosuggestions](https://github.com/zsh-users/zsh-autosuggestions) — `brew "zsh-autosuggestions"`

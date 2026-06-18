@@ -139,7 +139,28 @@ else
   chsh -s "$BREW_ZSH" || warn "chsh failed — set the default shell manually with: chsh -s $BREW_ZSH"
 fi
 
-# --- 5. Karabiner complex-modification imports ------------------------------
+# --- 5. GitHub CLI (gh) sign-in ---------------------------------------------
+# Authenticate gh and pin git operations to SSH, so pushes use your SSH key
+# (gh's web login can generate/upload one for you). Skipped when already signed
+# in — but we still enforce the SSH protocol — and when there's no terminal (the
+# login flow is interactive) unless MY_MAC_FORCE_GH is set. The browser flow is
+# easiest; pick the 'workflow' scope if you'll push changes under .github/workflows/.
+info "Signing in to the GitHub CLI (gh)."
+if ! command -v gh >/dev/null 2>&1; then
+  warn "gh not installed — skipping GitHub sign-in."
+elif gh auth status >/dev/null 2>&1; then
+  info "  Already signed in to GitHub."
+  gh config set git_protocol ssh --host github.com \
+    || warn "Couldn't set gh's git protocol to ssh — check 'gh config get git_protocol'."
+elif [ ! -r /dev/tty ] && [ -z "${MY_MAC_FORCE_GH:-}" ]; then
+  info "  Non-interactive shell — skipping (run 'gh auth login --git-protocol ssh' yourself later)."
+else
+  info "  Follow the prompts (the browser/web option is easiest)."
+  gh auth login --hostname github.com --git-protocol ssh \
+    || warn "gh sign-in didn't complete — run 'gh auth login --git-protocol ssh' yourself."
+fi
+
+# --- 6. Karabiner complex-modification imports ------------------------------
 # Skip when there's no terminal (e.g. CI) — the import needs GUI confirmation.
 if [ ! -r /dev/tty ] && [ -z "${MY_MAC_FORCE_KARABINER:-}" ]; then
   info "Non-interactive shell — skipping Karabiner imports (they need GUI confirmation)."
@@ -160,7 +181,7 @@ else
   warn "karabiner-elements not installed — skipping complex-modification imports."
 fi
 
-# --- 6. Summary -------------------------------------------------------------
+# --- 7. Summary -------------------------------------------------------------
 echo
 if [ "${#WARNINGS[@]}" -eq 0 ]; then
   ok "Done. Your Mac is set up."
