@@ -23,8 +23,9 @@ On a brand-new Mac, paste this into Terminal — no prerequisites:
 3. Installs **[Homebrew](https://brew.sh/)** if missing.
 4. Clones this repo to `~/.my-mac` (override the location with `MY_MAC_DIR`).
 5. Runs [`bootstrap.sh`](./bootstrap.sh), which installs everything in the
-   `Brewfile`, sets up the shell (zsh + Starship), signs you in to the GitHub
-   CLI (`gh`), and imports the Karabiner configs.
+   `Brewfile`, **pins** each installed package so later upgrades don't bump it,
+   sets up the shell (zsh + Starship), signs you in to the GitHub CLI (`gh`), and
+   imports the Karabiner configs.
 
 > **Sign in to the App Store first.** The `Vimlike` extension installs via the Mac
 > App Store (`mas`), which needs you signed in. The script pauses to remind you.
@@ -57,7 +58,14 @@ Karabiner configs (steps 3–5 above). Use this when you already have a checkout
 The whole script is **idempotent** — run it again any time:
 
 - Homebrew install is skipped when `brew` is already present.
-- `brew bundle` installs only what's missing.
+- `brew bundle` installs only what's **missing** and, by default, leaves
+  already-installed packages at their current versions (no auto-upgrade) — so you
+  can add one app and re-run without bumping everything else.
+- Installed packages are also **pinned**, so even `brew upgrade` won't change their
+  versions. To upgrade, run with **`MY_MAC_UPGRADE=1`** (unpins everything,
+  upgrades to the latest, then re-pins) or `brew unpin <name>` for a single
+  package. (Casks that auto-update — e.g. Docker Desktop, VS Code — can still
+  update themselves; App Store apps can't be pinned.)
 - Karabiner imports are skipped automatically for any config already imported
   (detected by title under `~/.config/karabiner/assets/complex_modifications/`),
   so a re-run won't re-prompt or create duplicate rule sets.
