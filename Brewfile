@@ -12,6 +12,10 @@ brew "mas"
 # bootstrap.sh signs you in (`gh auth login`) if you aren't already.
 brew "gh"
 
+# AWS CLI — command-line interface for Amazon Web Services.
+# Sign in with `aws configure` (or `aws sso login`) after install.
+brew "awscli"
+
 # Shell (zsh + niceties). zsh is macOS's default; the Homebrew build is newer and
 # bootstrap.sh makes it the login shell. The plugins and prompt are wired up in
 # shell/my-mac.zsh, which bootstrap.sh sources from ~/.zshrc.
@@ -28,6 +32,7 @@ cask "itsycal"             # tiny menu bar calendar
 cask "visual-studio-code"  # code editor
 cask "tableplus"           # database GUI client
 cask "discord"             # voice and text chat
+cask "gcloud-cli"          # Google Cloud CLI (gcloud); `gcloud init` to sign in
 
 # Mac App Store apps (requires being signed in to the App Store)
 mas "Vimlike", id: 1584519802  # Safari extension for vim-like browsing
