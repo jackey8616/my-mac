@@ -150,7 +150,52 @@ brew_pin_each pin --formula
 brew_pin_each pin --cask
 ok "Pinned installed formulae and casks ('brew unpin <name>' or MY_MAC_UPGRADE=1 to upgrade)."
 
-# --- 5. Shell (zsh + Starship + plugins) ------------------------------------
+# --- 5. VS Code extensions --------------------------------------------------
+# Install the extensions listed in vscode-extensions.txt via the `code` CLI
+# (the visual-studio-code cask puts `code` on PATH). Each line is an extension
+# id, optionally version-pinned as `id@version` (e.g. `ms-python.python@2024.0.0`;
+# VS Code marks a version-pinned extension so it won't auto-update past it).
+# Idempotent and non-upgrading, mirroring `brew bundle --no-upgrade`:
+#   - bare `id`        → skipped if installed at ANY version (left as-is)
+#   - pinned `id@ver`  → skipped only if that exact version is installed,
+#                        otherwise (re)installed at `ver` (--force allows the swap)
+# Skipped when `code` isn't on PATH (VS Code not installed) or the list is
+# missing. Needs no terminal, so it also runs in CI when VS Code is present.
+VSCODE_EXT_FILE="$SCRIPT_DIR/vscode-extensions.txt"
+if ! command -v code >/dev/null 2>&1; then
+  info "VS Code 'code' CLI not on PATH — skipping extension install."
+elif [ ! -f "$VSCODE_EXT_FILE" ]; then
+  info "No vscode-extensions.txt — skipping VS Code extension install."
+else
+  info "Installing VS Code extensions from vscode-extensions.txt."
+  installed_versioned="$(code --list-extensions --show-versions 2>/dev/null)" # 'id@version' per line
+  installed_ids="$(printf '%s\n' "$installed_versioned" | sed 's/@[^@]*$//')"  # 'id' per line
+  while IFS= read -r line || [ -n "$line" ]; do
+    line="${line%%#*}"            # strip inline/full-line comments
+    line="${line//[[:space:]]/}" # strip surrounding whitespace (IDs have none)
+    [ -n "$line" ] || continue
+    id="${line%@*}"              # extension id without any @version (== line if none)
+    if [ "$line" = "$id" ]; then
+      # No version pinned — skip if installed at any version (don't auto-upgrade).
+      if printf '%s\n' "$installed_ids" | grep -qixF -- "$id"; then
+        info "  $id already installed — skipping."
+        continue
+      fi
+    else
+      # Version pinned — skip only when that exact version is already installed.
+      if printf '%s\n' "$installed_versioned" | grep -qixF -- "$line"; then
+        info "  $line already installed — skipping."
+        continue
+      fi
+    fi
+    info "  Installing $line..."
+    code --install-extension "$line" --force >/dev/null 2>&1 \
+      || warn "  Couldn't install VS Code extension '$line'."
+  done < "$VSCODE_EXT_FILE"
+  ok "VS Code extensions applied."
+fi
+
+# --- 6. Shell (zsh + Starship + plugins) ------------------------------------
 # Source the repo's zsh setup from ~/.zshrc (idempotent via a marker block), then
 # make Homebrew's zsh the default login shell.
 info "Setting up zsh (Starship prompt, autosuggestions, syntax highlighting)."
@@ -189,7 +234,7 @@ else
   chsh -s "$BREW_ZSH" || warn "chsh failed — set the default shell manually with: chsh -s $BREW_ZSH"
 fi
 
-# --- 6. GitHub CLI (gh) sign-in ---------------------------------------------
+# --- 7. GitHub CLI (gh) sign-in ---------------------------------------------
 # Authenticate gh and pin git operations to SSH, so pushes use your SSH key
 # (gh's web login can generate/upload one for you). Skipped when already signed
 # in — but we still enforce the SSH protocol — and when there's no terminal (the
@@ -210,7 +255,7 @@ else
     || warn "gh sign-in didn't complete — run 'gh auth login --git-protocol ssh' yourself."
 fi
 
-# --- 7. Karabiner complex-modification imports ------------------------------
+# --- 8. Karabiner complex-modification imports ------------------------------
 # Skip when there's no terminal (e.g. CI) — the import needs GUI confirmation.
 if [ ! -r /dev/tty ] && [ -z "${MY_MAC_FORCE_KARABINER:-}" ]; then
   info "Non-interactive shell — skipping Karabiner imports (they need GUI confirmation)."
@@ -231,7 +276,7 @@ else
   warn "karabiner-elements not installed — skipping complex-modification imports."
 fi
 
-# --- 8. Summary -------------------------------------------------------------
+# --- 9. Summary -------------------------------------------------------------
 echo
 if [ "${#WARNINGS[@]}" -eq 0 ]; then
   ok "Done. Your Mac is set up."

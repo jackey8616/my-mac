@@ -52,12 +52,24 @@ Keep the scripts ShellCheck-clean.
   software, edit this file. Entries: `brew "<formula>"`, `cask "<cask>"`,
   `mas "<name>", id: <app-store-id>`. Homebrew itself is intentionally not listed
   (it's the prerequisite `bootstrap.sh` installs first).
+- **`vscode-extensions.txt`** — the source of truth for *which* VS Code extensions
+  to install (one extension ID per line; `#` comments and blanks ignored). A line
+  may pin a version as `id@version` (e.g. `ms-python.python@2024.0.0`); VS Code then
+  marks that extension so it won't auto-update past it. `bootstrap.sh` applies the
+  file after `brew bundle` with `code --install-extension … --force` (the
+  `visual-studio-code` cask provides the `code` CLI). It's non-upgrading like
+  `brew bundle --no-upgrade`: a bare `id` already installed at any version is left
+  as-is, and a pinned `id@version` is (re)installed only when that exact version
+  isn't present (skip-detection reads `code --list-extensions --show-versions`).
+  The step is skipped when `code` isn't on PATH (VS Code not installed).
 - **`bootstrap.sh`** — the orchestrator (*how* it's installed). Idempotent and safe
   to re-run. Flow: install Homebrew if missing → put `brew` on PATH
   (`/opt/homebrew` then `/usr/local`) → nudge to sign in to the App Store →
   `brew bundle --no-upgrade` (install only what's missing, leaving existing
   versions untouched) → `brew pin` every installed Brewfile formula/cask so re-runs
-  and `brew upgrade` don't bump them (`brew_pin_each`) → set up the shell (source
+  and `brew upgrade` don't bump them (`brew_pin_each`) → install the VS Code
+  extensions in `vscode-extensions.txt` via the `code` CLI (skips ones already
+  present) → set up the shell (source
   `shell/my-mac.zsh` from `~/.zshrc`, make Homebrew zsh the login shell) → sign in
   to the GitHub CLI
   (`gh auth login`, skipped if already authenticated) → open each Karabiner

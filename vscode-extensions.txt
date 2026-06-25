@@ -1,0 +1,21 @@
+# vscode-extensions.txt — VS Code extensions to install on a fresh Mac.
+#
+# Applied by bootstrap.sh via the `code` CLI (provided by the
+# visual-studio-code cask): one extension ID per line. Blank lines and
+# `#` comments are ignored; an inline `# ...` after an ID is stripped too.
+# Find IDs on the Marketplace page URL or with `code --list-extensions`.
+#
+# Version pinning (optional): append `@version` to lock a specific release,
+# e.g. `ms-python.python@2024.0.0`. VS Code marks a version-pinned extension so
+# it won't auto-update past that version (find versions on the Marketplace
+# "Version History" tab). Without `@version` you get whatever is latest at
+# install time.
+#
+# Idempotent and non-upgrading (like `brew bundle --no-upgrade`): a bare `id`
+# already installed at any version is left untouched; a pinned `id@version` is
+# (re)installed only when that exact version isn't present.
+
+ms-python.python           # Microsoft Python (pulls in Pylance + the Python Debugger)
+# ms-python.python@2024.0.0   # ...or pin a specific version like this
+vscodevim.vim              # Vim emulation (VSCodeVim)
+WakaTime.vscode-wakatime   # WakaTime — automatic coding-time tracking
