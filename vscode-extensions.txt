@@ -19,3 +19,4 @@ ms-python.python           # Microsoft Python (pulls in Pylance + the Python Deb
 # ms-python.python@2024.0.0   # ...or pin a specific version like this
 vscodevim.vim              # Vim emulation (VSCodeVim)
 WakaTime.vscode-wakatime   # WakaTime — automatic coding-time tracking
+bruno-api-client.bruno@5.0.1  # Bruno — Git-friendly API client (官方; pin 版本以防供應鏈攻擊)
