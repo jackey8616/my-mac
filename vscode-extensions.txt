@@ -15,8 +15,8 @@
 # already installed at any version is left untouched; a pinned `id@version` is
 # (re)installed only when that exact version isn't present.
 
-ms-python.python           # Microsoft Python (pulls in Pylance + the Python Debugger)
+ms-python.python@2026.4.0  # Microsoft Python (note: its deps Pylance/debugpy are NOT pinned by this)
 # ms-python.python@2024.0.0   # ...or pin a specific version like this
-vscodevim.vim              # Vim emulation (VSCodeVim)
-WakaTime.vscode-wakatime   # WakaTime — automatic coding-time tracking
+vscodevim.vim@1.32.4       # Vim emulation (VSCodeVim)
+WakaTime.vscode-wakatime@30.2.1  # WakaTime — automatic coding-time tracking
 bruno-api-client.bruno@5.0.1  # Bruno — Git-friendly API client (官方; pin 版本以防供應鏈攻擊)
